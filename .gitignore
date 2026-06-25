@@ -1,0 +1,44 @@
+# Environment
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Data — don't commit PDFs or generated chunks
+data/pdfs/
+data/chunks/
+
+# Vector store (persisted locally)
+data/qdrant/
+
+# Model cache (fastembed downloads here)
+.fastembed_cache/
+models/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Build
+dist/
+build/
+*.egg-info/
