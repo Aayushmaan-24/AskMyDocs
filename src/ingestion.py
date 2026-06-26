@@ -13,6 +13,7 @@ from typing import Literal
 from pypdf import PdfReader
 from rich.console import Console
 from rich.progress import track
+import re
 
 console = Console()
 
@@ -100,5 +101,28 @@ def chunk_recursive(pages: list[dict], target_size: int = 512, overlap: int = 64
                     "strategy": "recursive",
                     "chunk_id": _make_id(part),
                 })
+    return chunks
+
+def chunk_sentence(pages: list[dict], sentences_per_chunk: int = 5, overlap: int = 1) -> list[dict]:
+    """Sentence-aware chunking — keeps semantic units intact."""
+    chunks = []
+    sentence_splitter = re.compile(r'(?<=[.!?])\s+')
+    
+    for page in pages:
+        sentences = sentence_splitter.split(page['text'])
+        sentences = [s.strip() for s in sentences if len(s.strip())>20]
+        i = 0
+        while i < len(sentences):
+            window = sentences[i: i+sentences_per_chunk]
+            chunk_text = " ".join(window).strip()
+            if chunk_text:
+                chunks.append({
+                    "text" : chunk_text,
+                    "source" : page['source'],
+                    "page" : page['page'],
+                    "strategy" : "sentence",
+                    "chunk_id" : _make_id(chunk_text),
+                })
+            i += sentences_per_chunk - overlap
     return chunks
 
