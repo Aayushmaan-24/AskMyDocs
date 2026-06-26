@@ -126,3 +126,15 @@ def chunk_sentence(pages: list[dict], sentences_per_chunk: int = 5, overlap: int
             i += sentences_per_chunk - overlap
     return chunks
 
+# ── 3. Deduplication ───────────────────────────────────────────────
+
+def deduplicate(chunks: list[dict]) -> list[dict]:
+    """Remove exact-duplicate chunks by content hash."""
+    seen = set()
+    unique = []
+    for chunk in chunks:
+        if chunk['chunk_id'] not in seen:
+            seen.add(chunk['chunk_id'])
+            unique.append(chunk)
+    return unique
+
