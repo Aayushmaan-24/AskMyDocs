@@ -60,3 +60,45 @@ def chunk_fixed(pages: list[dict], size: int = 512, overlap: int = 64) -> list[d
     return chunks
 
 
+def chunk_recursive(pages: list[dict], target_size: int = 512, overlap: int = 64) -> list[dict]:
+    """Recursive splitting: paragraph → sentence → word fallback."""
+    separators = ["\n\n", "\n", ". ", " "]
+    chunks = []
+    
+    def split_text(text: str, sep_idx: int = 0) -> list[str]:
+        if len(text) <= target_size or sep_idx >= len(separators):
+            return [text]
+        sep = separators[sep_idx]
+        parts = text.split(sep)
+        result = []
+        current = ""
+        for part in parts:
+            candidate = current + sep + part if current else part
+            if len(candidate) <= target_size:
+                current = candidate
+            else:
+                if current:
+                    result.append(current)
+                if len(part) > target_size:
+                    result.extend(split_text(part, sep_idx + 1))
+                    current = ""
+                else:
+                    current = part
+        if current:
+            result.append(current)
+        return result
+    
+    for page in pages:
+        parts = split_text(page["text"])
+        for part in parts:
+            part = part.strip()
+            if len(part) > 50:
+                chunks.append({
+                    "text": part,
+                    "source": page["source"],
+                    "page":page["page"],
+                    "strategy": "recursive",
+                    "chunk_id": _make_id(part),
+                })
+    return chunks
+
