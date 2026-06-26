@@ -138,3 +138,14 @@ def deduplicate(chunks: list[dict]) -> list[dict]:
             unique.append(chunk)
     return unique
 
+# ── 4. Save / Load ─────────────────────────────────────────────────
+
+def save_chunks(chunks: list[dict], path: str='data/chunks/chunks.json'):
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as f:
+        json.dumps(chunks, f, indent = 2)
+    console.print(f"[green]✓ Saved {len(chunks)} chunks → {path}[/green]")
+    
+def load_chunks(path: str = "data/chunks/chunks.json") -> list[dict]:
+    with open(path) as f:
+        return json.load(f)
