@@ -98,3 +98,13 @@ def build_bm25_index(chunks: list[dict]) -> bm25s.BM25:
     
     console.print(f"[green]✓ BM25: {len(texts)} documents indexed → {BM25_PATH}[/green]")
     return bm25_index
+
+# ── 4. Load helpers (used by retrieval.py) ────────────────────────
+
+def load_vector_client() -> QdrantClient:
+    return QdrantClient(path=QDRANT_PATH)
+
+def load_bm25() -> tuple[bm25s.BM25, list[dict]]:
+    with open(BM25_PATH, 'rb') as f:
+        data = pickle.load(f)
+    return data['index'], data['corpus']
