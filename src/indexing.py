@@ -108,3 +108,16 @@ def load_bm25() -> tuple[bm25s.BM25, list[dict]]:
     with open(BM25_PATH, 'rb') as f:
         data = pickle.load(f)
     return data['index'], data['corpus']
+
+# ── 5. Main ───────────────────────────────────────────────────────
+
+if __name__ == '__main__':
+    from src.ingestion import load_chunks
+    
+    chunks = load_chunks()
+    console.print(f"\n[bold]Building indexes for {len(chunks)} chunks...[/bold]\n")
+    
+    build_vector_index(chunks)
+    build_bm25_index(chunks)
+    
+    console.print("\n[bold green]Both indexes built successfully.[/bold green]")
