@@ -40,3 +40,43 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     vectors = list(embedder.embed(texts))
     return [v.tolist() for v in vectors]
 
+# ── 2. Qdrant vector index ─────────────────────────────────────────
+
+def build_vector_index(chunks: list[dict]) -> QdrantClient:
+    Path(QDRANT_PATH).mkdir(parents=True, exist_ok=True)
+    client = QdrantClient(path=QDRANT_PATH)
+    
+    # Drop + recreate for clean rebuild
+    
+    existing = [c.name for c in client.get_collections().collections]
+    if COLLECTION_NAME in existing:
+        client.delete_collection(COLLECTION_NAME)
+        console.print("[yellow]Dropped existing Qdrant collection[/yellow]")
+        
+    client.create_collection(
+        collection_name = COLLECTION_NAME,
+        vectors_config=VectorParams(size = 384, distance=Distance.COSINE),
+    )
+    
+    texts = [c["text"] for c in chunks]
+    console.print(f"[cyan]Embedding {len(texts)} chunks...[/cyan]")
+    vectors = embed_texts(texts)
+    
+    points = [
+        PointStruct(
+            id = i,
+            vector = vectors[i],
+            payload={
+                "text": chunks[i]['text'],
+                "source": chunks[i]['source'],
+                "page": chunks[i]['page'],
+                "chunk_id": chunks[i]['chunk_id'],
+            },
+        )
+        for i in track(range(len(chunks)), description="Indexing into Qdrant...")
+    ]
+    
+    client.upsert(collection_name = COLLECTION_NAME, points = points)
+    console.print(f"[green]✓ Qdrant: {len(points)} vectors indexed[/green]")
+    return client
+
