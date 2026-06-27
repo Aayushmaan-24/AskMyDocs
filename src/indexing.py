@@ -121,3 +121,11 @@ if __name__ == '__main__':
     build_bm25_index(chunks)
     
     console.print("\n[bold green]Both indexes built successfully.[/bold green]")
+    
+    # Smoke test
+    console.print("\n[bold yellow]── Smoke Test ──[/bold yellow]")
+    client = load_vector_client()
+    info = client.get_collection(COLLECTION_NAME)
+    console.print(f" Qdrant Vectors : {info.points_count}")
+    bm25, corpus = load_bm25()
+    console.print(f" BM25 documents: {len(corpus)}")
