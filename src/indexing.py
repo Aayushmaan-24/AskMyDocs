@@ -80,3 +80,21 @@ def build_vector_index(chunks: list[dict]) -> QdrantClient:
     console.print(f"[green]✓ Qdrant: {len(points)} vectors indexed[/green]")
     return client
 
+# ── 3. BM25 index ─────────────────────────────────────────────────
+
+def build_bm25_index(chunks: list[dict]) -> bm25s.BM25:
+    texts = [c['text'] for c in chunks]
+    
+    # tokenize
+    tokenized = bm25s.tokenize(texts, stopwords="en")
+    
+    # build index
+    bm25_index = bm25s.BM25()
+    bm25_index.index(tokenized)
+    
+    # save index and corpus
+    with open(BM25_PATH, "wb") as f:
+        pickle.dump({"index":bm25_index, "corpus": chunks}, f)
+    
+    console.print(f"[green]✓ BM25: {len(texts)} documents indexed → {BM25_PATH}[/green]")
+    return bm25_index
