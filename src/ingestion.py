@@ -143,7 +143,7 @@ def deduplicate(chunks: list[dict]) -> list[dict]:
 def save_chunks(chunks: list[dict], path: str='data/chunks/chunks.json'):
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
-        json.dumps(chunks, f, indent = 2)
+        json.dump(chunks, f, indent=2)
     console.print(f"[green]✓ Saved {len(chunks)} chunks → {path}[/green]")
     
 def load_chunks(path: str = "data/chunks/chunks.json") -> list[dict]:
@@ -186,3 +186,12 @@ def ingest_pdfs(pdf_dir: str = "data/pdfs", strategy : ChunkStrategy = "recursiv
     
     save_chunks(chunks)
     return chunks
+
+# ── helper ─────────────────────────────────────────────────────────
+
+def _make_id(text: str) -> str:
+    return hashlib.md5(text.encode()).hexdigest()
+
+if __name__ == '__main__':
+    chunks = ingest_pdfs(strategy="recursive")
+    console.print(f"\n[bold green]Ingestion complete. {len(chunks)} chunks ready.[/bold green]")
