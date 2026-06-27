@@ -149,3 +149,40 @@ def save_chunks(chunks: list[dict], path: str='data/chunks/chunks.json'):
 def load_chunks(path: str = "data/chunks/chunks.json") -> list[dict]:
     with open(path) as f:
         return json.load(f)
+    
+# ── 5. Main: run all three strategies + compare ────────────────────
+
+def ingest_pdfs(pdf_dir: str = "data/pdfs", strategy : ChunkStrategy = "recursive") -> list[dict]:
+    pdf_files = list(Path(pdf_dir).glob("*.pdf"))
+    if not pdf_files:
+        console.print(f"[red]No PDFs found in {pdf_dir}[/red]")
+        return []
+    
+    all_pages = []
+    for pdf in track(pdf_files, description="Loading PDFs..."):
+        pages = load_pdf(str(pdf))
+        all_pages.extend(pages)
+        console.print(f"  [cyan]{pdf.name}[/cyan] → {len(pages)} pages")
+        
+    console.print(f"\n[bold]Total pages loaded:[/bold] {len(all_pages)}")
+    
+    chunkers = {
+        "fixed" : lambda p : chunk_fixed(p),
+        "recursive" : lambda p : chunk_recursive(p),
+        "sentence" : lambda p: chunk_sentence(p),
+    }
+    
+    # comparisons across all three
+    console.print("\n[bold yellow]── Chunking Strategy Comparison ──[/bold yellow]")
+    for name, fn in chunkers.items():
+        result = deduplicate(fn(all_pages))
+        avg_len = sum(len(c['text']) for c in result) / len(result) if result else 0
+        console.print(f"  {name:12s} → {len(result):5d} chunks  |  avg {avg_len:6.0f} chars")
+        
+    # use chosen strategy for final working
+    chosen_fn = chunkers[strategy]
+    chunks = deduplicate(chosen_fn(all_pages))
+    console.print(f"\n[green]Using strategy:[/green] [bold]{strategy}[/bold] → {len(chunks)} chunks")
+    
+    save_chunks(chunks)
+    return chunks
