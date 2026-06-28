@@ -100,3 +100,19 @@ def reciprocal_rank_fusion(results_a: list[dict], results_b: list[dict], k: int 
         for cid, score in merged
     ]
     
+# ── 4. Cross-encoder reranking ─────────────────────────────────────
+
+def rerank(query: str, candidates: list[dict], top_n: int = 5) -> list[dict]:
+    """Score each candidate with cross-encoder, return top_n."""
+    if not candidates:
+        return []
+    
+    reranker = get_reranker()
+    pairs = [(query, c['text']) for c in candidates]
+    ce_scores = reranker.predict(pairs)
+    
+    for i, doc in enumerate(candidates):
+        doc['ce_score'] = round(float(ce_scores[i]), 4)
+        
+    reranked = sorted(candidates, key=lambda x: x['ce_score'], reverse=True)
+    return reranked[:top_n]
