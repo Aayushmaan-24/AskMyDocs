@@ -116,3 +116,20 @@ def rerank(query: str, candidates: list[dict], top_n: int = 5) -> list[dict]:
         
     reranked = sorted(candidates, key=lambda x: x['ce_score'], reverse=True)
     return reranked[:top_n]
+
+# ── 5. Full hybrid pipeline ────────────────────────────────────────
+
+def hybrid_retrieve(query: str, top_k: int = 10, top_n: int = 5,) -> list[dict]:
+    """
+    Full pipeline:
+      1. BM25 retrieval  (sparse)
+      2. Vector retrieval (dense)
+      3. RRF merge
+      4. Cross-encoder rerank
+    Returns top_n results with all scores attached.
+    """
+    vec_results = retrieve_vector(query, top_k=top_k)
+    bm25_results = retrieve_bm25(query, top_k=top_k)
+    fused = reciprocal_rank_fusion(bm25_results, vec_results)
+    reranked = rerank(query, fused, top_n=top_n)
+    return reranked
