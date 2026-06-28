@@ -36,3 +36,23 @@ QUESTION : {query}
 ANSWER (cite every sentence) :
 
 """
+
+# ── 2. Citation parser ─────────────────────────────────────────────
+
+def parse_citations(answer: str, chunks: list[dict]) -> list[dict]:
+    """Extract which sources were actually cited in the answer."""
+    import re
+    cited = []
+    pattern = re.compile(r'\[SOURCE (\d+)\]')
+    cited_nums = set(int(m) for m in pattern.findall(answer))
+    for num in sorted(cited_nums):
+        idx = num - 1
+        if 0 <= idx < len(chunks):
+            cited.append({
+                "citation_num" : num,
+                "source" : chunks[idx]["source"],
+                "page" : chunks[idx]["page"],
+                "ce_score" : chunks[idx].get("ce_score", 0),
+                "text_preview" : chunks[idx]["text"][:120],
+            })
+    return cited
