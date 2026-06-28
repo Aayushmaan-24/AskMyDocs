@@ -122,3 +122,35 @@ def ask(query: str, top_k: int = 10, top_n: int = 5) -> dict:
             "completion_tokens": response.usage.completion_tokens,
         },
     }
+    
+# ── 5. Pretty printer ──────────────────────────────────────────────
+
+def print_result(result: dict) -> None:
+    
+    console.rule("[bold yellow]Answer[/bold yellow]")
+    console.print(f"\n{result['answer']}\n")
+    
+    console.rule("[bold cyan]Citations[/bold cyan]")
+    for c in result['citations']:
+        console.print(
+            f"  [SOURCE {c['citation_num']}] {c['source']} "
+            f"(page {c['page']}, ce_score={c['ce_score']:.4f})"
+        )
+        console.print(f"    [dim]{c['text_preview']}...[/dim]\n")
+        
+    v = result['validation']
+    status = "[green]✓ PASSED[/green]" if v["passed"] else "[red]✗ FAILED[/red]"
+    console.rule("[bold]Citation Validation[/bold]")
+    console.print(f"  Status        : {status}")
+    console.print(f"  Citation rate : {v['citation_rate'] * 100:.0f}%")
+    
+    if v['uncited_sentences']:
+        console.print(f"  [red]Uncited:[/red]")
+        for s in v["uncited_sentences"]:
+            console.print(f"    - {s[:100]}")
+            
+            
+    console.rule("[bold]Token Usage[/bold]")
+    console.print(f"  Prompt: {result['usage']['prompt_tokens']} | "
+                  f"Completion: {result['usage']['completion_tokens']}")
+    
