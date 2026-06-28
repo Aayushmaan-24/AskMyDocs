@@ -71,4 +71,32 @@ def retrieve_bm25(query: str, top_k : int = 10) -> list[dict]:
         })
         
     return hits
+
+# ── 3. Reciprocal Rank Fusion ──────────────────────────────────────
+
+def reciprocal_rank_fusion(results_a: list[dict], results_b: list[dict], k: int = 60) -> list[dict]:
+    """
+    Merge two ranked lists via RRF.
+    RRF score = 1/(k + rank_a) + 1/(k + rank_b)
+    Higher is better.
+    """
+    
+    scores: dict[str, float] = {}
+    docs: dict[str, float] = {}
+    
+    for rank, doc in enumerate(results_a):
+        cid = doc['chunk_id']
+        scores[cid] = scores.get(cid, 0.0) + 1.0 / (k + rank + 1)
+        docs[cid] = doc
+        
+    for rank, doc in enumerate(results_b):
+        cid = doc['chunk_id']
+        scores[cid] = scores.get(cid, 0.0) + 1.0 / (k + rank + 1)
+        docs[cid] = doc
+        
+    merged = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    return [
+        {**docs[cid], "rrf_score": round(score, 6), "method" : "hybrid"}
+        for cid, score in merged
+    ]
     
