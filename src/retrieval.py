@@ -133,3 +133,26 @@ def hybrid_retrieve(query: str, top_k: int = 10, top_n: int = 5,) -> list[dict]:
     fused = reciprocal_rank_fusion(bm25_results, vec_results)
     reranked = rerank(query, fused, top_n=top_n)
     return reranked
+
+# ── 6. Ablation: compare all three methods ────────────────────────
+
+def retrieval_ablation(query: str, top_k: int = 5) -> None:
+    """Print a side-by-side comparison of BM25 vs Vector vs Hybrid."""
+    
+    console.rule("[bold yellow]Retrieval Ablation[/bold yellow]")
+    console.print(f"Query: [italic]{query}[/italic]\n")
+    
+    for label, results in [
+        ("BM25 only", retrieve_bm25(query, top_k)),
+        ("Vector only", retrieve_vector(query, top_k)),
+        ("Hybrid with reranking", hybrid_retrieve(query, top_k, top_n=top_k))
+    ]:
+        console.print(f"[bold cyan]── {label} ──[/bold cyan]")
+        for i , r in enumerate(results[:3], 1):
+            score_key = "ce_score" if "ce_score" in r else "rrf_score" if "rrf_score" in r else "score"
+            console.print(
+                f" {i}. [{r['source']} p{r['page']}] "
+                f"score = {r['score_key']:.4f}\n"
+                f"     {r['text'][:120].strip()}..."
+            )
+            console.print()
