@@ -144,7 +144,7 @@ def print_result(result: dict) -> None:
     console.print(f"  Status        : {status}")
     console.print(f"  Citation rate : {v['citation_rate'] * 100:.0f}%")
     
-    if v['uncited_sentences']:
+    if v.get('uncited_sentences'):
         console.print(f"  [red]Uncited:[/red]")
         for s in v["uncited_sentences"]:
             console.print(f"    - {s[:100]}")
@@ -153,4 +153,18 @@ def print_result(result: dict) -> None:
     console.rule("[bold]Token Usage[/bold]")
     console.print(f"  Prompt: {result['usage']['prompt_tokens']} | "
                   f"Completion: {result['usage']['completion_tokens']}")
+    
+# ── 6. Main ───────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    queries = [
+        "What position is the applicant applying for?",
+        "What projects or experience does the applicant mention?",
+        "Why does the applicant want to work at Google?",
+    ]
+    for q in queries:
+        console.print(f"\n[bold magenta]Q: {q}[/bold magenta]")
+        result = ask(q)
+        print_result(result)
+        console.print("\n")
     
