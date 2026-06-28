@@ -3,6 +3,7 @@ pipeline.py — Groq generation with citation enforcement
 Every claim in the answer must map back to a source chunk.
 """
 
+import re
 import os
 from groq import Groq
 from dotenv import load_dotenv
@@ -41,7 +42,6 @@ ANSWER (cite every sentence) :
 
 def parse_citations(answer: str, chunks: list[dict]) -> list[dict]:
     """Extract which sources were actually cited in the answer."""
-    import re
     cited = []
     pattern = re.compile(r'\[SOURCE (\d+)\]')
     cited_nums = set(int(m) for m in pattern.findall(answer))
@@ -56,3 +56,25 @@ def parse_citations(answer: str, chunks: list[dict]) -> list[dict]:
                 "text_preview" : chunks[idx]["text"][:120],
             })
     return cited
+
+
+# ── 3. Citation validator ──────────────────────────────────────────
+
+def validate_citation(answer: str, chunks: list[dict]) -> list[dict]:
+    """
+    Check every sentence has a citation.
+    Returns a dict with pass/fail + details.
+    """
+    
+    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', answer) if s.strip()]
+    uncited = []
+    for sentence in sentences:
+        if not re.search(r'\[SOURCE \d+\]', sentence):
+            uncited.append(sentence)
+    
+    return {
+        "total_sentences" : len(sentence),
+        "uncited_sentence" : uncited,
+        "citation_rate" : round((len(sentence) - len(uncited)) / max(len(sentence), 1), 2),
+        "passed" : len(uncited) == 0,
+    }
