@@ -30,28 +30,27 @@ def get_reranker() -> CrossEncoder:
 # ── 2. Individual retrievers ───────────────────────────────────────
 
 def retrieve_vector(query: str, top_k: int = 10) -> list[dict]:
-    """Dense retrieval from Qdrant."""
+    """Dense retrieval from Qdrant (client 1.18+)."""
     client = load_vector_client()
     query_vec = embed_texts([query])[0]
-    results = client.search(
-        collection_name = COLLECTION_NAME,
-        query_vector = query_vec,
-        limit = top_k,
+    response = client.query_points(
+        collection_name=COLLECTION_NAME,
+        query=query_vec,
+        limit=top_k,
+        with_payload=True,
     )
-    
     return [
         {
-            "chunk_id" : r.payload['chunk_id'],
-            "text" : r.payload['text'],
-            "source" : r.payload['source'],
-            "page" : r.payload['page'],
-            "score" : r.score,
-            "method" : "vector",
+            "chunk_id": r.payload["chunk_id"],
+            "text":     r.payload["text"],
+            "source":   r.payload["source"],
+            "page":     r.payload["page"],
+            "score":    r.score,
+            "method":   "vector",
         }
-        for r in results
+        for r in response.points
     ]
-    
-    
+
 def retrieve_bm25(query: str, top_k : int = 10) -> list[dict]:
     """Sparse retrieval via BM25."""
     bm25_index , corpus = load_bm25()
