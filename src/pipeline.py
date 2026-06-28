@@ -78,3 +78,47 @@ def validate_citation(answer: str, chunks: list[dict]) -> list[dict]:
         "citation_rate" : round((len(sentence) - len(uncited)) / max(len(sentence), 1), 2),
         "passed" : len(uncited) == 0,
     }
+    
+# ── 4. Full RAG pipeline ───────────────────────────────────────────
+
+def ask(query: str, top_k: int = 10, top_n: int = 5) -> dict:
+    """
+    End-to-end RAG:
+    retrieve → build prompt → generate → validate citations
+    Returns full result dict with answer + citations + validation.
+    """
+    
+    # retrieve
+    chunks = hybrid_retrieve(query, top_k=top_k, top_n=top_n)
+    if not chunks:
+        return {"answer": "No relevant documents found.", "citations": [], "validation": {}}
+    
+    # Generate
+    prompt = build_prompt(query, chunks)
+    response = client.chat.completions.create(
+        model = MODEL,
+        messages=[{
+            "role" : "user",
+            "content" : prompt,
+        }],
+        temperature=0.1,
+        max_tokens=1024,
+    )
+    answer = response.choices[0].message.content.strip()
+    
+    # parse + validate citations
+    citations = parse_citations(answer, chunks)
+    validation = validate_citation(answer, chunks)
+    
+    return {
+        "query":      query,
+        "answer":     answer,
+        "citations":  citations,
+        "chunks":     chunks,
+        "validation": validation,
+        "model":      MODEL,
+        "usage": {
+            "prompt_tokens":     response.usage.prompt_tokens,
+            "completion_tokens": response.usage.completion_tokens,
+        },
+    }
