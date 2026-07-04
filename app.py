@@ -195,16 +195,38 @@ if run and query:
     
     # ── Citations ──
     st.subheader("Sources")
-    for c in result['citations']:
-        css = score_color(c['ce_score'])
-        st.markdown(f"""
-        <div class="source-card">
-            <strong>[SOURCE {c['citation_num']}]</strong>
-            &nbsp;{c['source']} · page {c['page']}
-            &nbsp;<span class="{css}">ce_score: {c['ce_score']:.4f}</span><br>
-            <span style="color:#94a3b8;font-size:0.8rem">{c['text_preview']}...</span>
-        </div>
-        """)
+    for c in result["citations"]:
+        score = c["ce_score"]
+        if score > 0:
+            score_color_hex = "#34d399"
+            score_label = "relevant"
+        elif score > -5:
+            score_color_hex = "#fbbf24"
+            score_label = "moderate"
+        else:
+            score_color_hex = "#f87171"
+            score_label = "low"
+
+        # clean up double spaces from pypdf
+        preview = " ".join(c["text_preview"].split())
+        with st.container():
+            col_badge, col_body = st.columns([1, 8])
+            with col_badge:
+                st.markdown(
+                    f"<div style='background:#1e3a5f;color:#60a5fa;padding:6px 10px;"
+                    f"border-radius:6px;font-family:monospace;font-weight:700;"
+                    f"text-align:center;margin-top:4px'>S{c['citation_num']}</div>",
+                    unsafe_allow_html=True
+                )
+            with col_body:
+                st.markdown(
+                    f"**{c['source']}** · page {c['page']} &nbsp;&nbsp;"
+                    f"<span style='color:{score_color_hex};font-size:0.8rem'>"
+                    f"● ce_score: {score:.4f} ({score_label})</span>",
+                    unsafe_allow_html=True
+                )
+                st.caption(f'"{preview}..."')
+            st.divider()
     
     # ── All retrieved chunks (expandable) ──
     
