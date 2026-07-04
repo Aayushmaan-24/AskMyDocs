@@ -60,7 +60,7 @@ def parse_citations(answer: str, chunks: list[dict]) -> list[dict]:
 
 # ── 3. Citation validator ──────────────────────────────────────────
 
-def validate_citation(answer: str, chunks: list[dict]) -> list[dict]:
+def validate_citations(answer: str, chunks: list[dict]) -> list[dict]:
     """
     Check every sentence has a citation.
     Returns a dict with pass/fail + details.
@@ -73,10 +73,10 @@ def validate_citation(answer: str, chunks: list[dict]) -> list[dict]:
             uncited.append(sentence)
     
     return {
-        "total_sentences" : len(sentence),
-        "uncited_sentence" : uncited,
-        "citation_rate" : round((len(sentence) - len(uncited)) / max(len(sentence), 1), 2),
-        "passed" : len(uncited) == 0,
+        "total_sentences": len(sentences),
+        "uncited_sentences": uncited,
+        "citation_rate": round((len(sentences) - len(uncited)) / max(len(sentences), 1), 2),
+        "passed": len(uncited) == 0,
     }
     
 # ── 4. Full RAG pipeline ───────────────────────────────────────────
@@ -108,7 +108,7 @@ def ask(query: str, top_k: int = 10, top_n: int = 5) -> dict:
     
     # parse + validate citations
     citations = parse_citations(answer, chunks)
-    validation = validate_citation(answer, chunks)
+    validation = validate_citations(answer, chunks)
     
     return {
         "query":      query,
