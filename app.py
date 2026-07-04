@@ -194,4 +194,33 @@ if run and query:
     st.divider()
     
     # ── Citations ──
+    st.subheader("Sources")
+    for c in result['citations']:
+        css = score_color(c['ce_score'])
+        st.markdown(f"""
+        <div class="source-card">
+            <strong>[SOURCE {c['citation_num']}]</strong>
+            &nbsp;{c['source']} · page {c['page']}
+            &nbsp;<span class="{css}">ce_score: {c['ce_score']:.4f}</span><br>
+            <span style="color:#94a3b8;font-size:0.8rem">{c['text_preview']}...</span>
+        </div>
+        """)
     
+    # ── All retrieved chunks (expandable) ──
+    
+    with st.expander("🔍 All retrieved chunks (before reranking cutoff)", expanded=False):
+        for i , chunk in enumerate(result['chunks'], 1):
+            with st.container():
+                cols = st.columns([1, 6, 1])
+                with cols[0]:
+                    st.markdown(f"**#{i}**")
+                with cols[1]:
+                    st.markdown(f"`{chunk['source']}` · page {chunk['page']}")
+                    st.caption(chunk["text"][:200])
+                with cols[2]:
+                    st.markdown(
+                        f"<span class='{score_color(chunk.get('ce_score',0))}'>"
+                        f"{chunk.get('ce_score', chunk.get('rrf_score', 0)):.4f}</span>",
+                        unsafe_allow_html=True
+                    )
+                st.divider()
