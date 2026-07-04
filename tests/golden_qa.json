@@ -1,0 +1,42 @@
+[
+  {
+    "question": "What position is the applicant applying for?",
+    "ground_truth": "The applicant is applying for the Software Engineering Internship at Google for Summer 2027."
+  },
+  {
+    "question": "Who is the applicant?",
+    "ground_truth": "The applicant is Aayushmaan Chakraborty."
+  },
+  {
+    "question": "Where is the Google office the applicant is applying to?",
+    "ground_truth": "The applicant is applying to Google LLC in Bengaluru, Karnataka, India."
+  },
+  {
+    "question": "What courses has the applicant completed outside of their curriculum?",
+    "ground_truth": "The applicant completed CS50x and CS50P outside of their required curriculum to understand memory management, pointers, and C-level behaviour."
+  },
+  {
+    "question": "What self-study courses is the applicant currently pursuing?",
+    "ground_truth": "The applicant is working through MIT 6.006 Introduction to Algorithms, UC Berkeley CS162 Operating Systems, and Stanford CS144 Computer Networking in parallel with their coursework."
+  },
+  {
+    "question": "Why does the applicant want to work at Google?",
+    "ground_truth": "The applicant wants to work at Google because it operates at a scale no other environment can replicate, and they want to build systems that serve billions of users and learn from engineers who have solved complex problems."
+  },
+  {
+    "question": "What does the applicant want to gain from the internship?",
+    "ground_truth": "The applicant wants to spend ten to twelve weeks working on production-scale systems, understand what reliability, performance, and design demand at scale, and bring that back to everything they build."
+  },
+  {
+    "question": "What technical skills does the applicant claim to have?",
+    "ground_truth": "The applicant claims to have a strong command of data structures, algorithms, and concurrency concepts, as well as understanding of evaluation metrics and architectural trade-offs."
+  },
+  {
+    "question": "What is the date of the cover letter?",
+    "ground_truth": "The cover letter is dated 27 June 2026."
+  },
+  {
+    "question": "What does the applicant say about their work ethic?",
+    "ground_truth": "The applicant states they have the technical foundation, curiosity, and work ethic to contribute meaningfully from day one."
+  }
+]
