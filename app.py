@@ -103,3 +103,33 @@ def score_color(score: float) -> str:
         return "score-mid"
     return "score-bad"
 
+# ── Sidebar ────────────────────────────────────────────────────────
+
+with st.sidebar:
+    
+    st.title("📚 Ask My Docs")
+    st.caption("RAG · Hybrid Retrieval · Citation Enforced")
+    st.divider()
+    
+    st.subheader("⚙️ Retrieval Settings")
+    top_k = st.slider("Candidates to retrieve (top_k)", 5, 20, 10)
+    top_n = st.slider("Results after reranking (top_n)", 2, 8, 5)
+    st.divider()
+    
+    st.subheader("📖 About")
+    st.markdown("""
+    **Pipeline:**
+    1. BM25 sparse retrieval
+    2. Vector dense retrieval
+    3. RRF fusion
+    4. Cross-encoder reranking
+    5. Groq LLM generation
+    6. Citation validation
+    
+    **Model:** `llama-3.3-70b-versatile`
+    **Embeddings:** `bge-small-en-v1.5`
+    **Reranker:** `ms-marco-MiniLM-L-6-v2`
+    """)
+    st.divider()
+    
+    st.caption("Drop PDFs in `data/pdfs/` and re-run ingestion + indexing to update the corpus.")
