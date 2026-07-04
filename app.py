@@ -133,3 +133,65 @@ with st.sidebar:
     st.divider()
     
     st.caption("Drop PDFs in `data/pdfs/` and re-run ingestion + indexing to update the corpus.")
+    
+# ── Main ───────────────────────────────────────────────────────────
+
+st.header("Ask My Docs")
+st.caption("Every answer is grounded in your documents. No hallucinations — citations enforced.")
+
+# example queries
+with st.expander("💡 Example queries", expanded=False):
+    examples = [
+        "What position is the applicant applying for?",
+        "What projects or experience does the applicant mention?",
+        "Why does the applicant want to work at Google?",
+        "What courses has the applicant completed?",
+    ]
+    for ex in examples:
+        if st.button(ex, key=ex):
+            st.session_state["query_input"] = ex
+            
+query = st.text_input("Ask a question about your documents:", 
+                      placeholder="e.g. What is the main argument of the paper?",
+                      key="query_input"
+)
+
+run = st.button("Ask", type="primary", disabled=not query)
+
+if run and query:
+    with st.spinner("Retrieving · Reranking · Generating..."):
+        result = ask(query, top_k=top_k, top_n=top_n)
+        
+    # ── Answer ──
+    st.subheader("Answer")
+    highlighted = highlight_citations(result["answer"])
+    st.markdown(
+        f'<div class="answer-box">{highlighted}</div>',
+        unsafe_allow_html=True
+    )
+    st.divider()
+    
+    # ── Metrics ──
+    v = result['validation']
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Citation Rate", f"{v['citation_rate']*100:.0f}%")
+    with col2:
+        st.metric("Sentences", v["total_sentences"])
+    with col3:
+        st.metric("Sources Used", len(result["citations"]))
+    with col4:
+        st.metric("Tokens Used",
+                  result["usage"]["prompt_tokens"] + result["usage"]["completion_tokens"])
+        
+    # ── citation status ──
+    if v['passed']:
+        st.success("✓ Citation validation passed — every sentence is grounded")
+    else:
+        st.error(f"✗ {len(v['uncited_sentences'])} uncited sentence(s) found")
+        for s in v['uncited_sentences']:
+            st.code(s)
+    st.divider()
+    
+    # ── Citations ──
+    
