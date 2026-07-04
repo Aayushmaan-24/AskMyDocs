@@ -84,3 +84,22 @@ st.markdown("""
 </style>
             
 """, unsafe_allow_html=True)
+
+# ── Helpers ────────────────────────────────────────────────────────
+
+def highlight_citations(text: str) -> str:
+    """Wrap [SOURCE N] tags in styled HTML spans."""
+    return re.sub(
+        r'\[SOURCE (\d+)\]',
+        r'<span class="citation-badge">[SOURCE \1]</span>',
+        text
+    )
+    
+def score_color(score: float) -> str:
+    """return a CSS class based on the score value."""
+    if score > 0:
+        return "score-good"
+    if score > -5:
+        return "score-mid"
+    return "score-bad"
+
