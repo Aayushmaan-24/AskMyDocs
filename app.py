@@ -195,17 +195,24 @@ if run and query:
     
     # ── Citations ──
     st.subheader("Sources")
+    all_scores = [x["ce_score"] for x in result["citations"]]
+    best = max(all_scores)
+    worst = min(all_scores)
+    spread = best - worst if best != worst else 1
+
     for c in result["citations"]:
         score = c["ce_score"]
-        if score > 0:
+        normalized = (score - worst) / spread  # 0.0 to 1.0
+
+        if normalized >= 0.66:
             score_color_hex = "#34d399"
-            score_label = "relevant"
-        elif score > -5:
+            score_label = "best match"
+        elif normalized >= 0.33:
             score_color_hex = "#fbbf24"
-            score_label = "moderate"
+            score_label = "good match"
         else:
             score_color_hex = "#f87171"
-            score_label = "low"
+            score_label = "weaker match"
 
         # clean up double spaces from pypdf
         preview = " ".join(c["text_preview"].split())
