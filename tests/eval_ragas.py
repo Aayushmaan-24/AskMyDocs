@@ -164,3 +164,10 @@ def test_context_recall(eval_scores):
     print(f"\nContext recall: {score:.4f} (threshold: {THRESHOLDS['_context_recall']})")
     assert score >= THRESHOLDS["_context_recall"], \
         f"Context recall {score:.4f} below threshold {THRESHOLDS['_context_recall']}"
+        
+# ── 6. Main ───────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    scores = run_evaluation()
+    print_report(scores)
+    save_scores(scores)
