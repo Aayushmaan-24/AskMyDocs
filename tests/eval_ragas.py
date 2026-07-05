@@ -88,8 +88,8 @@ def run_evaluation(limit: int=None) -> dict:
     
     print(f"\nRunning RAGAS Evaluation...")
     scores = evaluate(
-        dataset=Dataset,
-        metrics=[_faithfulness, _answer_relevance, _context_precision, _context_recall]
+        dataset=dataset,
+        metrics=[_faithfulness, _answer_relevance, _context_precision, _context_recall],
         llm = llm,
         embeddings=embeddings,
     )
