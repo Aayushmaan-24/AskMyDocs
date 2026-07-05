@@ -68,4 +68,35 @@ def build_eval_dataset(limit: int=None) -> tuple[Dataset, list[dict]]:
     
     return dataset, raw_results
     
-        
+# ── 2. Run RAGAS evaluation ───────────────────────────────────────
+
+def run_evaluation(limit: int=None) -> dict:
+    
+    dataset , raw_result = build_eval_dataset(limit=limit)
+    
+    # Groq as LLM
+    llm = LangchainLLMWrapper(ChatGroq(
+        model="llama-3.3-70b-versatile",
+        api_key=os.getenv("GROQ_API_KEY"),
+        temperature=0,
+    ))
+    
+    # use local BGE embeddings
+    embeddings = LangchainEmbeddingsWrapper(
+        FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+    )
+    
+    print(f"\nRunning RAGAS Evaluation...")
+    scores = evaluate(
+        dataset=Dataset,
+        metrics=[_faithfulness, _answer_relevance, _context_precision, _context_recall]
+        llm = llm,
+        embeddings=embeddings,
+    )
+    
+    results = {
+        "_faithfulness" : round(float(scores['_faithfulness']), 4),
+        "_answer_relevance" :round(float(scores["_answer_relevancy"]), 4),
+        "_context_precision" : round(float(scores["_context_precision"]), 4),
+        "_context_recall" : round(float(scores["_context_recall"]), 4),
+    }
