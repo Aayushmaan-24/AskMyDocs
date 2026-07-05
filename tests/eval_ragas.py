@@ -36,3 +36,36 @@ THRESHOLDS = {
 }
 
 GOLDEN_QA_PATH = "tests/golden_qa.json"
+
+# ── 1. Build RAGAS dataset from golden Q&A ────────────────────────
+
+def build_eval_dataset(limit: int=None) -> tuple[Dataset, list[dict]]:
+    
+    with open(GOLDEN_QA_PATH) as f:
+        golden = json.load(f)
+        
+    if limit:
+        golden = golden[:limit]
+        
+    questions, answers, contexts, ground_truths, raw_results = [] , [] , [] , [] , []
+    
+    print(f"\nRunning pipeline on {len(golden)} questions...")
+    for i, item in enumerate(golden):
+        print(f"  [{i+1}/{len(golden)}] {item['question'][:60]}...")
+        result = ask(item["question"], top_k=10, top_n=5)
+        questions.append(item["question"])
+        answers.append(result["answer"])
+        contexts.append([c['text'] for c in result['chunks']])
+        ground_truths.append(item['ground_truth'])
+        raw_results.append(result)
+        
+    dataset = Dataset.from_dict({
+        "question" : questions,
+        "answer" : answers,
+        "contexts" : contexts,
+        "ground_truth" : ground_truths,
+    })
+    
+    return dataset, raw_results
+    
+        
