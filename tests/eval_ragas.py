@@ -124,4 +124,43 @@ def print_report(scores: dict) -> None:
         print("CI gate would BLOCK this merge.")
     else:
         print("\n✓ All metrics passed. CI gate would ALLOW this merge.")
+        
+# ── 4. Save scores for CI comparison ─────────────────────────────
+
+def save_scores(scores: dict, path: str = "tests/last_eval_scores.json") -> None:
+    with open(path, 'w') as f:
+        json.dumps(scores, f, indent=2)
+    print(f"\nScores saved → {path}")
     
+# ── 5. Pytest CI gate tests ───────────────────────────────────────
+
+@pytest.fixture(scope="module")
+def eval_scores():
+    """Run eval once, share results across all threshold tests."""
+    limit = 5 if os.getenv("CI") else None
+    return run_evaluation(limit=limit)
+
+def test_faithfulness(eval_scores):
+    score = eval_scores['_faithfulness']
+    print(f"\nFaithfulness: {score:.4f} (threshold: {THRESHOLDS['_faithfulness']})")
+    assert score >= THRESHOLDS["_faithfulness"], \
+        f"Faithfulness {score:.4f} below threshold {THRESHOLDS['_faithfulness']}"
+
+def test_answer_relevancy(eval_scores):
+    score = eval_scores["_answer_relevancy"]
+    print(f"\nAnswer relevancy: {score:.4f} (threshold: {THRESHOLDS['_answer_relevancy']})")
+    assert score >= THRESHOLDS["_answer_relevancy"], \
+        f"Answer relevancy {score:.4f} below threshold {THRESHOLDS['_answer_relevancy']}"
+
+def test_context_precision(eval_scores):
+    score = eval_scores["_context_precision"]
+    print(f"\nContext precision: {score:.4f} (threshold: {THRESHOLDS['_context_precision']})")
+    assert score >= THRESHOLDS["_context_precision"], \
+        f"Context precision {score:.4f} below threshold {THRESHOLDS['_context_precision']}"
+
+
+def test_context_recall(eval_scores):
+    score = eval_scores["_context_recall"]
+    print(f"\nContext recall: {score:.4f} (threshold: {THRESHOLDS['_context_recall']})")
+    assert score >= THRESHOLDS["_context_recall"], \
+        f"Context recall {score:.4f} below threshold {THRESHOLDS['_context_recall']}"
