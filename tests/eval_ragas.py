@@ -100,3 +100,28 @@ def run_evaluation(limit: int=None) -> dict:
         "_context_precision" : round(float(scores["_context_precision"]), 4),
         "_context_recall" : round(float(scores["_context_recall"]), 4),
     }
+    
+    return results
+
+# ── 3. Print report ───────────────────────────────────────────────
+
+def print_report(scores: dict) -> None:
+    
+    print("\n" + "="*50)
+    print("RAGAS EVALUATION REPORT")
+    print("="*50)
+    
+    for metric, score in scores.items():
+        threshold = THRESHOLDS[metric]
+        status = "✓ PASS" if score >= threshold else "✗ FAIL"
+        bar = "█" * int(score * 20) + "░" * (20 - int(score * 20))
+        print(f"{metric:22s} {bar} {score:.4f}  [{status}]  (threshold: {threshold})")
+    print("="*50)
+    
+    failed = [m for m, s in scores.items() if s < THRESHOLDS[m]]
+    if failed:
+        print(f"\n✗ FAILED metrics: {', '.join(failed)}")
+        print("CI gate would BLOCK this merge.")
+    else:
+        print("\n✓ All metrics passed. CI gate would ALLOW this merge.")
+    
