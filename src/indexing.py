@@ -58,6 +58,10 @@ def build_vector_index(chunks: list[dict]) -> QdrantClient:
         vectors_config=VectorParams(size = 384, distance=Distance.COSINE),
     )
     
+    if not chunks:
+        console.print("[yellow]No chunks to index into Qdrant.[/yellow]")
+        return client
+
     texts = [c["text"] for c in chunks]
     console.print(f"[cyan]Embedding {len(texts)} chunks...[/cyan]")
     vectors = embed_texts(texts)
@@ -83,6 +87,15 @@ def build_vector_index(chunks: list[dict]) -> QdrantClient:
 # ── 3. BM25 index ─────────────────────────────────────────────────
 
 def build_bm25_index(chunks: list[dict]) -> bm25s.BM25:
+    if not chunks:
+        console.print("[yellow]No chunks to index for BM25.[/yellow]")
+        # Create a dummy index or handle absence
+        bm25_index = bm25s.BM25()
+        Path(BM25_PATH).parent.mkdir(parents=True, exist_ok=True)
+        with open(BM25_PATH, "wb") as f:
+            pickle.dump({"index":bm25_index, "corpus": []}, f)
+        return bm25_index
+
     texts = [c['text'] for c in chunks]
     
     # tokenize
