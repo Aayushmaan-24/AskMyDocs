@@ -23,21 +23,6 @@
 
 ---
 
-## 📸 Demo
-
-![System UI Screenshot Placeholder](https://via.placeholder.com/1200x600.png?text=AskMyDocs+Main+Interface+Screenshot)
-*Full Streamlit dashboard showing the interactive Q&A and source breakdown.*
-
-![Retrieval Flow GIF Placeholder](https://via.placeholder.com/800x400.png?text=Interactive+Demo+GIF)
-*Real-time demonstration of hybrid retrieval and citation highlighting.*
-
-> [!TIP]
-> **Sample Query:** *"What specific project experience does the applicant have with concurrency?"*
->
-> **Sample Answer:** "The applicant mentions significant experience with concurrency through self-study of UC Berkeley's CS162 Operating Systems course [SOURCE 5]. They have a strong command of data structures and algorithms which includes concurrency concepts [SOURCE 8]."
-
----
-
 ## 📋 Table of Contents
 
 - [Architecture](#-architecture)
