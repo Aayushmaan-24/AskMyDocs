@@ -156,6 +156,7 @@ def ingest_pdfs(pdf_dir: str = "data/pdfs", strategy : ChunkStrategy = "recursiv
     pdf_files = list(Path(pdf_dir).glob("*.pdf"))
     if not pdf_files:
         console.print(f"[red]No PDFs found in {pdf_dir}[/red]")
+        save_chunks([])
         return []
     
     all_pages = []
