@@ -33,7 +33,6 @@
 - [Usage](#-usage)
 - [Evaluation](#-evaluation)
 - [Performance & Design Decisions](#-performance--design-decisions)
-- [Production Considerations](#-production-considerations)
 - [CI/CD](#-cicd)
 - [Roadmap](#-roadmap)
 - [Troubleshooting](#-troubleshooting)
@@ -299,15 +298,6 @@ We evaluated multiple strategies before settling on **Recursive Character Splitt
 | **Recursive** | **Medium** | **High** | **Medium** |
 
 **Decision:** Recursive splitting (512/64) provides the best balance for maintaining paragraph context while staying within embedding model token limits.
-
----
-
-## 🛡️ Production Considerations
-
-*   **Persistence:** All indexes (BM25 and Qdrant) are persisted locally in the `data/` directory, ensuring fast restarts and data durability.
-*   **Determinism:** Recursive chunking and fixed seed temperatures in LLM generation help maintain consistent system behavior.
-*   **Citation Validation:** The system performs post-generation validation to ensure every sentence is grounded, flagging uncited sentences in the UI.
-*   **Observability:** Streamlit UI provides real-time visibility into retrieval scores, chunk previews, and token usage.
 
 ---
 
