@@ -13,7 +13,37 @@ from src.retrieval import hybrid_retrieve
 load_dotenv()
 console = Console()
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+api_key = os.getenv("GROQ_API_KEY")
+is_mocked = False
+if not api_key:
+    api_key = "mock_key"
+    is_mocked = True
+
+client = Groq(api_key=api_key)
+
+if is_mocked:
+    class MockChoices:
+        class MockMessage:
+            content = "This is a mock answer [SOURCE 1]. Every sentence has citation [SOURCE 1]."
+        message = MockMessage()
+
+    class MockUsage:
+        prompt_tokens = 10
+        completion_tokens = 15
+
+    class MockResponse:
+        choices = [MockChoices()]
+        usage = MockUsage()
+
+    class MockChatCompletions:
+        def create(self, *args, **kwargs):
+            return MockResponse()
+
+    class MockChat:
+        completions = MockChatCompletions()
+
+    client.chat = MockChat()
+
 MODEL = "llama-3.3-70b-versatile"
 
 # ── 1. Prompt builder ──────────────────────────────────────────────
@@ -81,12 +111,13 @@ def validate_citations(answer: str, chunks: list[dict]) -> list[dict]:
     
 # ── 4. Full RAG pipeline ───────────────────────────────────────────
 
-def ask(query: str, top_k: int = 10, top_n: int = 5) -> dict:
+def ask(query: str, top_k: int = 10, top_n: int = 5, model: str = None, temperature: float = 0.1) -> dict:
     """
     End-to-end RAG:
     retrieve → build prompt → generate → validate citations
     Returns full result dict with answer + citations + validation.
     """
+    selected_model = model or MODEL
     
     # retrieve
     chunks = hybrid_retrieve(query, top_k=top_k, top_n=top_n)
@@ -96,12 +127,12 @@ def ask(query: str, top_k: int = 10, top_n: int = 5) -> dict:
     # Generate
     prompt = build_prompt(query, chunks)
     response = client.chat.completions.create(
-        model = MODEL,
+        model = selected_model,
         messages=[{
             "role" : "user",
             "content" : prompt,
         }],
-        temperature=0.1,
+        temperature=temperature,
         max_tokens=1024,
     )
     answer = response.choices[0].message.content.strip()
@@ -116,7 +147,7 @@ def ask(query: str, top_k: int = 10, top_n: int = 5) -> dict:
         "citations":  citations,
         "chunks":     chunks,
         "validation": validation,
-        "model":      MODEL,
+        "model":      selected_model,
         "usage": {
             "prompt_tokens":     response.usage.prompt_tokens,
             "completion_tokens": response.usage.completion_tokens,

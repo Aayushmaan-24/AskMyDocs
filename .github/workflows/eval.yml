@@ -24,7 +24,7 @@ jobs:
           pip install --upgrade pip
           pip install \
             "qdrant-client==1.18.0" \
-            fastembed bm25s groq pypdf \
+            fastembed bm25s groq pypdf python-docx \
             python-dotenv rank-bm25 tiktoken rich numpy \
             sentence-transformers datasets \
             pytest pytest-asyncio \

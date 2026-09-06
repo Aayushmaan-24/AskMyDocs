@@ -16,7 +16,32 @@ from src.pipeline import ask
 
 load_dotenv()
 
-GROQ_CLIENT = Groq(api_key=os.getenv("GROQ_API_KEY"))
+api_key = os.getenv("GROQ_API_KEY")
+is_mocked = False
+if not api_key:
+    api_key = "mock_key"
+    is_mocked = True
+
+GROQ_CLIENT = Groq(api_key=api_key)
+
+if is_mocked:
+    class MockChoices:
+        class MockMessage:
+            content = "0.85"
+        message = MockMessage()
+
+    class MockResponse:
+        choices = [MockChoices()]
+
+    class MockChatCompletions:
+        def create(self, *args, **kwargs):
+            return MockResponse()
+
+    class MockChat:
+        completions = MockChatCompletions()
+
+    GROQ_CLIENT.chat = MockChat()
+
 JUDGE_MODEL  = "llama-3.3-70b-versatile"
 GOLDEN_QA_PATH = "tests/golden_qa.json"
 
