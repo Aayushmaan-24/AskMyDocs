@@ -76,4 +76,28 @@ class RequestTrace:
     def step_duration(self) -> dict:
         return {s.name : s.duration_ms for s in self.steps}
     
+# ── 2. SQLite storage ──────────────────────────────────────────────
 
+def init_db():
+    Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS traces (
+            request_id        TEXT PRIMARY KEY,
+            timestamp         TEXT,
+            query             TEXT,
+            model             TEXT,
+            total_ms          REAL,
+            prompt_tokens     INTEGER,
+            completion_tokens INTEGER,
+            cost_usd          REAL,
+            citation_rate     REAL,
+            faithfulness      REAL,
+            chunks_retrieved  INTEGER,
+            top_ce_score      REAL,
+            step_durations    TEXT,
+            error             TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
