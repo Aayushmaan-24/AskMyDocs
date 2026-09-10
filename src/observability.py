@@ -127,3 +127,19 @@ def save_trace(trace: RequestTrace):
     ))
     conn.commit()
     conn.close()
+    
+def load_traces(limit: int = 500) -> list[dict]:
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute("SELECT * FROM traces ORDER BY timestamp DESC LIMIT ?", (limit,)).fetchall()
+    conn.close()
+    
+    results = []
+    
+    for row in rows:
+        row_dict = dict(row)
+        row_dict["step_durations"] = json.loads(row_dict["step_durations"] or "{}")
+        results.append(row_dict)
+        
+    return results
