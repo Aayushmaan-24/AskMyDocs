@@ -101,3 +101,29 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+    
+def save_trace(trace: RequestTrace):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+        INSERT OR REPLACE INTO traces VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
+    """, (
+        trace.request_id,
+        trace.timestamp,
+        trace.query,
+        trace.model,
+        trace.total_ms,
+        trace.prompt_tokens,
+        trace.completion_tokens,
+        trace.cost_usd,
+        trace.citation_rate,
+        trace.faithfulness,
+        trace.chunks_retrieved,
+        trace.top_ce_score,
+        json.dumps(trace.step_durations()),
+        trace.error,
+    ))
+    conn.commit()
+    conn.close()
