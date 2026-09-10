@@ -43,5 +43,37 @@ class StepTrace:
             return 0.0
         return round((self.end_time - self.start_time) * 1000, 2)
         
+@dataclass
+class RequestTrace:
+    query : str
+    request_id : str = field(default_factory=lambda: datetime.now().strftime("%Y%m%d_%H%M%S_%f"))
+    timestamp : str = field(default_factory=lambda: datetime.now().isoformat())
+    model: str = "llama-3.3-70b-versatile"
+    steps: list = field(default_factory=list)
     
+        # filled after completion
+    total_ms:            float = 0.0
+    prompt_tokens:       int   = 0
+    completion_tokens:   int   = 0
+    cost_usd:            float = 0.0
+    citation_rate:       float = 0.0
+    faithfulness:        float = 0.0
+    chunks_retrieved:    int   = 0
+    top_ce_score:        float = 0.0
+    error:               Optional[str] = None
     
+    def add_step(self, name: str) -> StepTrace:
+        step = StepTrace(name)
+        self.steps.append(step)
+        return step
+    
+    def compute_cost(self):
+        pricing = PRICING.get(self.model, PRICING["default"])
+        input_cost = (self.prompt_tokens / 1_000_000) * pricing["input"]
+        output_cost = (self.completion_tokens / 1_000_000) * pricing["output"]
+        self.cost_usd = round(input_cost + output_cost, 6)
+        
+    def step_duration(self) -> dict:
+        return {s.name : s.duration_ms for s in self.steps}
+    
+
