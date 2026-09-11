@@ -242,3 +242,8 @@ def traced_ask(query: str, top_k: int = 10, top_n : int = 5) -> dict:
             },
         }
         
+    except Exception as e:
+        trace.error = str(e)
+        trace.total_ms = round((time.perf_counter() - start) * 1000, 1)
+        save_trace(trace)
+        raise
