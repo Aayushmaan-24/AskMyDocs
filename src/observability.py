@@ -143,3 +143,72 @@ def load_traces(limit: int = 500) -> list[dict]:
         results.append(row_dict)
         
     return results
+
+def traced_ask(query: str, top_k: int = 10, top_n : int = 5) -> dict:
+    
+    """
+    Drop-in replacement for pipeline.ask() that adds full tracing.
+    Records per-step latency, cost, citation rate, chunk scores.
+    """
+    
+    from src.retrieval import retrieve_bm25, retrieve_vector, reciprocal_rank_fusion, rerank
+    from src.pipeline import build_prompt, parse_citations, validate_citations
+    from src.indexing import embed_texts, COLLECTION_NAME, load_vector_client
+    import os
+    from groq import Groq
+    from dotenv import load_dotenv
+    
+    load_dotenv()
+    
+    trace = RequestTrace(query=query)
+    start = time.perf_counter()
+    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    
+    try:
+        
+        # bm25 retrieval
+        step = trace.add_step("bm25_retrieval")
+        bm25_results = retrieve_bm25(query, top_k=top_k)
+        step.finish(hits = len(bm25_results))
+        
+        # vector retrieval
+        step = trace.add_step("vector_retrieval")
+        vector_results = retrieve_vector(query, top_k=top_k)
+        step.finish(hits = len(vector_results))
+        
+        # RRF fusion
+        step = trace.add_step("rrf_fusion")
+        fused_results = reciprocal_rank_fusion(bm25_results, vector_results)
+        step.finish(hits = len(fused_results))
+        
+        # reranking
+        step = trace.add_step("reranking")
+        chunks = rerank(query, fused_results, top_n=top_n)
+        step.finish(
+            top_n = len(chunks),
+            top_ce_score = chunks[0].get("ce_score", 0.0) if chunks else 0.0
+        )
+        
+        # LLM generation
+        step = trace.add_step("llm_generation")
+        prompt = build_prompt(query, chunks)
+        response = client.chat.completions.create(
+            model = trace.model,
+            messages = [{"role": "user", "content": prompt}],
+            temperature = 0.2,
+            max_tokens = 1024,
+        )
+        answer = response.choices[0].message.content.strip()
+        step.finish(
+            prompt_tokens = response.usage.prompt_tokens,
+            completion_tokens = response.usage.completion_tokens,
+        )
+        
+        # citation validations
+        step = trace.add_step("citation_validation")
+        citations = parse_citations(answer, chunks)
+        validations = validate_citations(answer, chunks)
+        step.finish(
+            citation_rate = validations["citation_rate"],
+            uncited = len(validations.get(["uncited_sentences"], []))
+        )
