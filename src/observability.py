@@ -212,3 +212,33 @@ def traced_ask(query: str, top_k: int = 10, top_n : int = 5) -> dict:
             citation_rate = validations["citation_rate"],
             uncited = len(validations.get(["uncited_sentences"], []))
         )
+        
+        # finalize trace
+        trace.total_ms          = round((time.perf_counter() - start) * 1000, 1)
+        trace.prompt_tokens     = response.usage.prompt_tokens
+        trace.completion_tokens = response.usage.completion_tokens
+        trace.citation_rate     = validations["citation_rate"]
+        trace.chunks_retrieved  = len(chunks)
+        trace.top_ce_score      = chunks[0].get("ce_score", 0) if chunks else 0
+        trace.compute_cost()
+        save_trace(trace)
+        
+        return {
+            "query":      query,
+            "answer":     answer,
+            "citations":  citations,
+            "chunks":     chunks,
+            "validation": validations,
+            "model":      trace.model,
+            "usage": {
+                "prompt_tokens":     trace.prompt_tokens,
+                "completion_tokens": trace.completion_tokens,
+            },
+            "trace": {
+                "request_id":    trace.request_id,
+                "total_ms":      trace.total_ms,
+                "cost_usd":      trace.cost_usd,
+                "step_durations": trace.step_durations(),
+            },
+        }
+        
