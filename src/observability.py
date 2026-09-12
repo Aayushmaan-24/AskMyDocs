@@ -17,8 +17,7 @@ DB_PATH = "data/traces.db"
 
 # Groq pricing (per 1M tokens, as of 2026)
 PRICING = {
-    "llama-3.3-70b-versatile": {"input": 0.59, "output": 0.79},
-    "llama-3.1-8b-instant":    {"input": 0.05, "output": 0.08},
+    "qwen/qwen3.6-27b": {"input": 0.59, "output": 0.79},
     "default":                  {"input": 0.59, "output": 0.79},
 }
 
@@ -48,7 +47,7 @@ class RequestTrace:
     query : str
     request_id : str = field(default_factory=lambda: datetime.now().strftime("%Y%m%d_%H%M%S_%f"))
     timestamp : str = field(default_factory=lambda: datetime.now().isoformat())
-    model: str = "llama-3.3-70b-versatile"
+    model: str = "qwen/qwen3.6-27b"
     steps: list = field(default_factory=list)
     
         # filled after completion
@@ -73,7 +72,7 @@ class RequestTrace:
         output_cost = (self.completion_tokens / 1_000_000) * pricing["output"]
         self.cost_usd = round(input_cost + output_cost, 6)
         
-    def step_duration(self) -> dict:
+    def step_durations(self) -> dict:
         return {s.name : s.duration_ms for s in self.steps}
     
 # ── 2. SQLite storage ──────────────────────────────────────────────
@@ -198,7 +197,9 @@ def traced_ask(query: str, top_k: int = 10, top_n : int = 5) -> dict:
             temperature = 0.2,
             max_tokens = 1024,
         )
-        answer = response.choices[0].message.content.strip()
+        raw = response.choices[0].message.content.strip()
+        import re as _re
+        answer = _re.sub(r"<think>.*?</think>", "", raw, flags=_re.DOTALL).strip()
         step.finish(
             prompt_tokens = response.usage.prompt_tokens,
             completion_tokens = response.usage.completion_tokens,
@@ -210,7 +211,7 @@ def traced_ask(query: str, top_k: int = 10, top_n : int = 5) -> dict:
         validations = validate_citations(answer, chunks)
         step.finish(
             citation_rate = validations["citation_rate"],
-            uncited = len(validations.get(["uncited_sentences"], []))
+            uncited = len(validations.get("uncited_sentences", []))
         )
         
         # finalize trace
@@ -247,3 +248,24 @@ def traced_ask(query: str, top_k: int = 10, top_n : int = 5) -> dict:
         trace.total_ms = round((time.perf_counter() - start) * 1000, 1)
         save_trace(trace)
         raise
+    
+if __name__ == "__main__":
+    
+    from rich.console import Console
+    from rich.table import Table
+    console = Console()
+    
+    console.print("[bold cyan]Running traced query...[/bold cyan]")
+    result = traced_ask("What position is the applicant applying for?")
+    
+    console.print(f"\n[bold]Answer:[/bold] {result['answer'][:200]}")
+    console.print(f"\n[bold]Trace ID:[/bold] {result['trace']['request_id']}")
+    console.print(f"[bold]Total:[/bold]    {result['trace']['total_ms']}ms")
+    console.print(f"[bold]Cost:[/bold]     ${result['trace']['cost_usd']:.6f}")
+    
+    table = Table(title="Step Latencies")
+    table.add_column("Step")
+    table.add_column("Duration (ms)", justify="right")
+    for step, ms in result["trace"]["step_durations"].items():
+        table.add_row(step, str(ms))
+    console.print(table)
