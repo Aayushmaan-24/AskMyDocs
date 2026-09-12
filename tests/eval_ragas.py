@@ -42,7 +42,7 @@ if is_mocked:
 
     GROQ_CLIENT.chat = MockChat()
 
-JUDGE_MODEL  = "llama-3.3-70b-versatile"
+JUDGE_MODEL  = "qwen/qwen3.6-27b"
 GOLDEN_QA_PATH = "tests/golden_qa.json"
 
 THRESHOLDS = {
