@@ -34,3 +34,28 @@ def percentile(data : list[float], p: int) -> float:
     idx = int(len(sorted_data) * p / 100)
     idx = min(idx, len(sorted_data) - 1)
     return round(sorted_data[idx], 1)
+
+# ── 2. Latency metrics ─────────────────────────────────────────────
+
+def compute_latency_metrics(traces: list[dict]) -> dict:
+    """p50/p95 for total latency and per step latency"""
+    total_times = [t["total_ms"] for t in traces if t.get("total_ms")]
+    
+    step_times = defaultdict(list)
+    for t in traces:
+        steps = t.get("step_durations", {})
+        for step , ms in steps.items():
+            step_times[step].append(ms)
+            
+    return {
+        "total_p50" : percentile(total_times, 50),
+        "total_p95" : percentile(total_times, 95),
+        "total_avg" : round(sum(total_times) / len(total_times), 1) if total_times else 0.0,
+        "steps" : {
+            step : {
+                "p50" : percentile(times, 50),
+                "p95" : percentile(times, 95),
+            }
+            for step, times in step_times.items()
+        }
+    }
