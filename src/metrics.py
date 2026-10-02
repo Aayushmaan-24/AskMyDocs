@@ -127,3 +127,47 @@ def compute_metrics(limit: int = 100) -> dict:
         "cost" : compute_cost_metrics(traces),
         "quality" : compute_quality_metrics(traces),
     }
+    
+# ── 6. Print report ────────────────────────────────────────────────
+
+def print_metrics_report(metrics: dict) -> None:
+    if "error" in metrics:
+        console.print(f"[red]{metrics['error']}[/red]")
+        return
+
+    console.rule("[bold yellow]AskMyDocs Observability Report[/bold yellow]")
+    console.print(f"  Traces analyzed: {metrics['trace_count']}\n")
+
+    # Latency table
+    lat = metrics["latency"]
+    table = Table(title="Latency Metrics")
+    table.add_column("Metric",   style="cyan")
+    table.add_column("p50 (ms)", justify="right")
+    table.add_column("p95 (ms)", justify="right")
+
+    table.add_row("End-to-end", str(lat["total_p50"]), str(lat["total_p95"]))
+    for step, vals in lat.get("steps", {}).items():
+        table.add_row(f"  {step}", str(vals["p50"]), str(vals["p95"]))
+    console.print(table)
+
+    # Cost table
+    cost = metrics["cost"]
+    console.print(f"\n[bold]Cost Metrics[/bold]")
+    console.print(f"  Total spent     : ${cost.get('total_usd', 0):.6f}")
+    console.print(f"  Avg per request : ${cost.get('avg_per_request', 0):.6f}")
+    console.print(f"  Daily projection: ${cost.get('daily_projection', 0):.4f}")
+    console.print(f"  Total tokens    : {cost.get('total_tokens', 0):,}")
+
+    # Quality
+    q = metrics["quality"]
+    status = "[red]⚠ REGRESSION DETECTED[/red]" if q["regression_detected"] else "[green]✓ Stable[/green]"
+    console.print(f"\n[bold]Quality Metrics[/bold]")
+    console.print(f"  Avg citation rate   : {q['avg_citation_rate']:.2%}")
+    console.print(f"  Recent (last 10)    : {q['recent_citation_rate']:.2%}")
+    console.print(f"  Drift from baseline : {q['drift_from_baseline']:+.4f}")
+    console.print(f"  Status              : {status}")
+
+
+if __name__ == "__main__":
+    metrics = compute_metrics()
+    print_metrics_report(metrics)
