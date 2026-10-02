@@ -59,3 +59,33 @@ def compute_latency_metrics(traces: list[dict]) -> dict:
             for step, times in step_times.items()
         }
     }
+    
+# ── 3. Cost metrics ────────────────────────────────────────────────
+
+def compute_cost_metrics(traces: listp[dict]) -> dict:
+    """Total cost, cost per request, daily projection."""
+    
+    costs = [t["cost_usd"] for t in traces if t.get("cost_usd")]
+    if not costs:
+        return {}
+    
+    total = round(sum(costs), 4)
+    avg = round(total / len(costs), 4)
+    
+    if len(traces) >= 2:
+        first = datetime.fromisoformat(traces[-1]["timestamp"])
+        last = datetime.fromisoformat(traces[0]["timestamp"])
+        hours = max((last - first).total_seconds()/ 3600, 0.001)
+        rph = len(traces) / hours
+        daily = round(rph * 24 * avg, 4)
+        
+    else:
+        daily = 0.0
+        
+    return {
+        "total_cost" : total,
+        "avg_cost" : avg,
+        "daily_projection" : daily,
+        "total_requests" : len(costs),
+        "total_tokens" : sum((t.get("prompt_tokens", 0) or 0) + (t.get("completion_tokens", 0) or 0) for t in traces),
+    }
