@@ -111,3 +111,19 @@ def compute_quality_metrics(traces: list[dict]) -> dict:
         "drift_from_baseline" : drift,
         "regression_alert" : drift > REGRESSION_THRESHOLD,
     }
+    
+# ── 5. Full report ─────────────────────────────────────────────────
+
+def compute_metrics(limit: int = 100) -> dict:
+    traces = load_traces(limit=limit)
+    if not limit:
+        return {
+            "error" : "No traces found. Run some queries first."
+        }
+        
+    return {
+        "trace_count" : len(traces),
+        "latency" : compute_latency_metrics(traces),
+        "cost" : compute_cost_metrics(traces),
+        "quality" : compute_quality_metrics(traces),
+    }
