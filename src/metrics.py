@@ -89,3 +89,25 @@ def compute_cost_metrics(traces: listp[dict]) -> dict:
         "total_requests" : len(costs),
         "total_tokens" : sum((t.get("prompt_tokens", 0) or 0) + (t.get("completion_tokens", 0) or 0) for t in traces),
     }
+    
+# ── 4. Quality metrics ─────────────────────────────────────────────
+
+def compute_quality_metrics(traces: list[dict]) -> dict:
+    """Rolling citation rate + regression detection."""
+    
+    citation_rates = [
+        t["citation_rate"] for t in traces if t.get("citation_rate") is not None
+    ]
+    
+    avg_citation = round(sum(citation_rates) / len(citation_rates), 3) if citation_rates else 0.0
+    
+    recent = citation_rates[:10]  # last 10 traces
+    recent_avg = round(sum(recent) / len(recent), 3) if recent else 0.0
+    drift = round(abs(recent_avg - BASELINE["citation_rate"]), 3)
+    
+    return {
+        "avg_citation_rate" : avg_citation,
+        "recent_avg_citation_rate" : recent_avg,
+        "drift_from_baseline" : drift,
+        "regression_alert" : drift > REGRESSION_THRESHOLD,
+    }
