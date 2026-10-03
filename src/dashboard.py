@@ -194,3 +194,19 @@ with col_right2:
         yaxis_title="citation rate",
     )
     st.plotly_chart(fig4, use_container_width=True)
+    
+# ── Row 3: Raw trace table ─────────────────────────────────────────
+
+st.divider()
+
+st.subheader("Recent Traces")
+display_cols = ["timestamp", "query", "total_ms", "cost_usd", "citation_rate", "chunks_retrieved", "top_ce_score"]
+display_df = df[display_cols].copy()
+
+display_df["query"] = display_df["query"].str[:50]
+display_df["total_ms"]    = display_df["total_ms"].round(0).astype(int)
+display_df["cost_usd"]    = display_df["cost_usd"].apply(lambda x: f"${x:.6f}")
+display_df["citation_rate"] = display_df["citation_rate"].apply(lambda x: f"{x:.0%}")
+display_df["top_ce_score"]  = display_df["top_ce_score"].round(3)
+
+st.dataframe(display_df, use_container_width=True, hide_index=True)
