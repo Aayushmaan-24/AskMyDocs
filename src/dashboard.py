@@ -63,4 +63,30 @@ for _, row in df.iterrows():
         })
 
 step_df = pd.DataFrame(steps_df_rows)
+
+# ── Top metrics row ────────────────────────────────────────────────
+
+st.divider()
+col1, col2, col3, col4, col5 = st.columns(5)
+
+latency = metrics.get("latency", {})
+cost = metrics.get("cost", {})
+quality = metrics.get("quality", {})    
+
+with col1:
+    st.metric("Total Requests", metrics.get("trace_count", 0))
     
+with col2:
+    st.metric("p50 latency", f"{latency.get("total_p50", 0)/1000:.1f}s")
+
+with col3:
+    st.metric("p95 latency", f"{latency.get("total_p95", 0)/1000:.1f}s")
+    
+with col4:
+    st.metric("Average cost / req", f"${cost.get("avg_per_request", 0):.6f}")
+    
+with col5:
+    cr = quality.get("avg_citation_rate", 0)
+    st.metric("Citation Rate", f"{cr:.0%}", delta = f"{cr - BASELINE['citation_rate']:.0%} vs baseline")
+    
+st.divider()
