@@ -77,17 +77,18 @@ with col1:
     st.metric("Total Requests", metrics.get("trace_count", 0))
     
 with col2:
-    st.metric("p50 latency", f"{latency.get("total_p50", 0)/1000:.1f}s")
+    st.metric("p50 Latency", f"{latency.get('total_p50', 0)/1000:.1f}s")
 
 with col3:
-    st.metric("p95 latency", f"{latency.get("total_p95", 0)/1000:.1f}s")
+    st.metric("p95 Latency", f"{latency.get('total_p95', 0)/1000:.1f}s")
     
 with col4:
-    st.metric("Average cost / req", f"${cost.get("avg_per_request", 0):.6f}")
+    st.metric("Avg Cost/Request", f"${cost.get('avg_per_request', 0):.6f}")
     
 with col5:
     cr = quality.get("avg_citation_rate", 0)
-    st.metric("Citation Rate", f"{cr:.0%}", delta = f"{cr - BASELINE['citation_rate']:.0%} vs baseline")
+    st.metric("Citation Rate", f"{cr:.0%}", delta=f"{cr - BASELINE['citation_rate']:.0%} vs baseline")
+
     
 st.divider()
 
@@ -124,7 +125,7 @@ with col_left:
             font_color="#e2e8f0", xaxis_title="milliseconds",
             yaxis=dict(categoryorder="array", categoryarray=steps_order[::-1]),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
 with col_right:
     st.subheader("End-to-End Latency Over Time")
@@ -146,7 +147,7 @@ with col_right:
         plot_bgcolor="#0f172a", paper_bgcolor="#0f172a",
         font_color="#e2e8f0", yaxis_title="seconds",
     )
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, width="stretch")
 
 # ── Row 2: Cost + Citation rate ────────────────────────────────────
 
@@ -169,7 +170,7 @@ with col_left2:
         plot_bgcolor="#0f172a", paper_bgcolor="#0f172a",
         font_color="#e2e8f0", yaxis_title="USD",
     )
-    st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(fig3, width="stretch")
     st.caption(f"Daily projection: ${cost.get('daily_projection', 0):.4f} · Total tokens: {cost.get('total_tokens', 0):,}")
 
 with col_right2:
@@ -193,7 +194,7 @@ with col_right2:
         font_color="#e2e8f0", yaxis=dict(range=[0, 1.1]),
         yaxis_title="citation rate",
     )
-    st.plotly_chart(fig4, use_container_width=True)
+    st.plotly_chart(fig4, width="stretch")
     
 # ── Row 3: Raw trace table ─────────────────────────────────────────
 
@@ -209,7 +210,7 @@ display_df["cost_usd"]    = display_df["cost_usd"].apply(lambda x: f"${x:.6f}")
 display_df["citation_rate"] = display_df["citation_rate"].apply(lambda x: f"{x:.0%}")
 display_df["top_ce_score"]  = display_df["top_ce_score"].round(3)
 
-st.dataframe(display_df, use_container_width=True, hide_index=True)
+st.dataframe(display_df, width="stretch", hide_index=True)
 
 # ── Regression alert ───────────────────────────────────────────────
 
