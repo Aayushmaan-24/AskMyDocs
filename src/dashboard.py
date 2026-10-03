@@ -147,3 +147,50 @@ with col_right:
         font_color="#e2e8f0", yaxis_title="seconds",
     )
     st.plotly_chart(fig2, use_container_width=True)
+
+# ── Row 2: Cost + Citation rate ────────────────────────────────────
+
+col_left2, col_right2 = st.columns([1, 1])
+
+with col_left2:
+    st.subheader("Cumulative Cost (USD)")
+    df_sorted = df.sort_values("timestamp")
+    df_sorted["cumulative_cost"] = df_sorted["cost_usd"].cumsum()
+
+    fig3 = go.Figure(go.Scatter(
+        x=df_sorted["timestamp"],
+        y=df_sorted["cumulative_cost"],
+        fill="tozeroy",
+        line=dict(color="#10b981", width=2),
+        fillcolor="rgba(16,185,129,0.1)",
+    ))
+    fig3.update_layout(
+        height=260, margin=dict(l=0, r=0, t=20, b=0),
+        plot_bgcolor="#0f172a", paper_bgcolor="#0f172a",
+        font_color="#e2e8f0", yaxis_title="USD",
+    )
+    st.plotly_chart(fig3, use_container_width=True)
+    st.caption(f"Daily projection: ${cost.get('daily_projection', 0):.4f} · Total tokens: {cost.get('total_tokens', 0):,}")
+
+with col_right2:
+    st.subheader("Citation Rate per Request")
+    fig4 = go.Figure()
+    fig4.add_trace(go.Scatter(
+        x=df["timestamp"], y=df["citation_rate"],
+        mode="lines+markers",
+        line=dict(color="#f59e0b", width=2),
+        marker=dict(size=6),
+        name="Citation rate",
+    ))
+    fig4.add_hline(
+        y=BASELINE["citation_rate"],
+        line_dash="dash", line_color="#ef4444",
+        annotation_text=f"Baseline: {BASELINE['citation_rate']:.0%}",
+    )
+    fig4.update_layout(
+        height=260, margin=dict(l=0, r=0, t=20, b=0),
+        plot_bgcolor="#0f172a", paper_bgcolor="#0f172a",
+        font_color="#e2e8f0", yaxis=dict(range=[0, 1.1]),
+        yaxis_title="citation rate",
+    )
+    st.plotly_chart(fig4, use_container_width=True)
