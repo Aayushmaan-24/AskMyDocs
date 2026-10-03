@@ -31,3 +31,36 @@ st.markdown("""
 st.title("📡 AskMyDocs Observability")
 st.caption("Latency · Cost · Quality drift · Step breakdown")
 
+# ── Load data ──────────────────────────────────────────────────────
+
+traces = load_traces(limit = 200)
+metrics = compute_metrics()
+
+if not traces:
+    st.warning("No traces found. Please run some queries first.")
+    st.stop()
+    
+df = pd.DataFrame(traces)
+
+df["timestamp"] = pd.to_datetime(df["timestamp"])
+df["total_s"] = df["total_ms"] / 1000
+df["cost_usd"] = pd.to_numeric(df["cost_usd"], errors="coerce").fillna(0.0)
+
+# parse step durations
+
+steps_df_rows = []
+
+for _, row in df.iterrows():
+    steps = row.get("step_durations", {})
+    if isinstance(steps, str):
+        steps = json.loads(steps)
+    for step, ms in steps.items():
+        steps_df_rows.append({
+            "timestamp" : row["timestamp"],
+            "step" : step,
+            "ms" : ms,
+            "request_id" : row["request_id"],
+        })
+
+step_df = pd.DataFrame(steps_df_rows)
+    
