@@ -210,3 +210,11 @@ display_df["citation_rate"] = display_df["citation_rate"].apply(lambda x: f"{x:.
 display_df["top_ce_score"]  = display_df["top_ce_score"].round(3)
 
 st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+# ── Regression alert ───────────────────────────────────────────────
+
+if quality.get("regression_detected"):
+    st.error(f"⚠️ REGRESSION DETECTED — Citation rate dropped {quality.get('drift_from_baseline', 0):.1%} below baseline. Investigate recent changes.")
+else:
+    st.success("✅ All quality metrics within acceptable range.")
+    
