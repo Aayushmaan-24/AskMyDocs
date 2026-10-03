@@ -44,7 +44,7 @@ if is_mocked:
 
     client.chat = MockChat()
 
-MODEL = "qwen/qwen3.6-27b"
+MODEL = "qwen/qwen3.8-27b"
 
 # ── 1. Prompt builder ──────────────────────────────────────────────
 
@@ -133,7 +133,7 @@ def ask(query: str, top_k: int = 10, top_n: int = 5, model: str = None, temperat
             "content" : prompt,
         }],
         temperature=temperature,
-        max_tokens=500,
+        max_tokens=800,
     )
     raw = response.choices[0].message.content.strip()
     # strip qwen3 chain-of-thought <think>...</think> blocks

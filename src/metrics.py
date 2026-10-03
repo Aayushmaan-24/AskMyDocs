@@ -62,7 +62,7 @@ def compute_latency_metrics(traces: list[dict]) -> dict:
     
 # ── 3. Cost metrics ────────────────────────────────────────────────
 
-def compute_cost_metrics(traces: listp[dict]) -> dict:
+def compute_cost_metrics(traces: list[dict]) -> dict:
     """Total cost, cost per request, daily projection."""
     
     costs = [t["cost_usd"] for t in traces if t.get("cost_usd")]
@@ -153,18 +153,18 @@ def print_metrics_report(metrics: dict) -> None:
     # Cost table
     cost = metrics["cost"]
     console.print(f"\n[bold]Cost Metrics[/bold]")
-    console.print(f"  Total spent     : ${cost.get('total_usd', 0):.6f}")
+    console.print(f"  Total spent     : ${cost.get('total_usd', 0):.8f}")
     console.print(f"  Avg per request : ${cost.get('avg_per_request', 0):.6f}")
     console.print(f"  Daily projection: ${cost.get('daily_projection', 0):.4f}")
     console.print(f"  Total tokens    : {cost.get('total_tokens', 0):,}")
 
     # Quality
     q = metrics["quality"]
-    status = "[red]⚠ REGRESSION DETECTED[/red]" if q["regression_detected"] else "[green]✓ Stable[/green]"
+    status = "[red]⚠ REGRESSION DETECTED[/red]" if q.get("regression_detected", False) else "[green]✓ Stable[/green]"
     console.print(f"\n[bold]Quality Metrics[/bold]")
-    console.print(f"  Avg citation rate   : {q['avg_citation_rate']:.2%}")
-    console.print(f"  Recent (last 10)    : {q['recent_citation_rate']:.2%}")
-    console.print(f"  Drift from baseline : {q['drift_from_baseline']:+.4f}")
+    console.print(f"  Avg citation rate   : {q.get('avg_citation_rate', 0):.2%}")
+    console.print(f"  Recent (last 10)    : {q.get('recent_citation_rate', 0):.2%}")
+    console.print(f"  Drift from baseline : {q.get('drift_from_baseline', 0):+.4f}")
     console.print(f"  Status              : {status}")
 
 

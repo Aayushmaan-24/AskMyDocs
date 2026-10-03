@@ -17,7 +17,7 @@ DB_PATH = "data/traces.db"
 
 # Groq pricing (per 1M tokens, as of 2026)
 PRICING = {
-    "qwen/qwen3.6-27b": {"input": 0.59, "output": 0.79},
+    "qwen/qwen3.8-27b": {"input": 0.59, "output": 0.79},
     "default":                  {"input": 0.59, "output": 0.79},
 }
 
@@ -47,7 +47,7 @@ class RequestTrace:
     query : str
     request_id : str = field(default_factory=lambda: datetime.now().strftime("%Y%m%d_%H%M%S_%f"))
     timestamp : str = field(default_factory=lambda: datetime.now().isoformat())
-    model: str = "qwen/qwen3.6-27b"
+    model: str = "qwen/qwen3.8-27b"
     steps: list = field(default_factory=list)
     
         # filled after completion
@@ -195,7 +195,7 @@ def traced_ask(query: str, top_k: int = 10, top_n : int = 5) -> dict:
             model = trace.model,
             messages = [{"role": "user", "content": prompt}],
             temperature = 0.2,
-            max_tokens = 1024,
+            max_tokens = 800,
         )
         raw = response.choices[0].message.content.strip()
         import re as _re
