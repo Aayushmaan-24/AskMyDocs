@@ -25,3 +25,9 @@ st.markdown("""
   [data-testid="stMetricLabel"] { font-size: 0.75rem; color: #64748b; }
 </style>
 """, unsafe_allow_html=True)
+
+# ── Header ─────────────────────────────────────────────────────────
+
+st.title("📡 AskMyDocs Observability")
+st.caption("Latency · Cost · Quality drift · Step breakdown")
+
