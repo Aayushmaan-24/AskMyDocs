@@ -22,3 +22,15 @@ TEST_QUERIES = [
     "Why does the applicant want to work at Google?",
 ]
 
+# ── Fixture: run N queries and return metrics ──────────────────────
+
+@pytest.fixture(scope="module")
+def fresh_metrics():
+    """Run N fresh traced queries and compute metrics."""
+    queries = TEST_QUERIES[:N_QUERIES]
+    print(f"\nRunning {len(queries)} traced queries for regression check...")
+    for q in queries:
+        result = traced_ask(q)
+        print(f"  ✓ {q[:50]} — {result['trace']['total_ms']:.0f}ms")
+    return compute_metrics(limit=N_QUERIES)
+
