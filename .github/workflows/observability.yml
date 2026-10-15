@@ -1,0 +1,53 @@
+name: Observability Regression Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  regression-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install \
+            "qdrant-client==1.18.0" \
+            fastembed bm25s groq pypdf \
+            python-dotenv rank-bm25 tiktoken rich numpy \
+            sentence-transformers sqlalchemy aiosqlite \
+            pytest
+
+      - name: Run ingestion + indexing
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          python -m src.ingestion
+          python -m src.indexing
+
+      - name: Run regression gate
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CI: "true"
+        run: |
+          PYTHONPATH=. pytest tests/test_regression.py -v --tb=short 2>&1 | tee regression_output.txt
+
+      - name: Upload regression results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-results
+          path: |
+            regression_output.txt
+            data/traces.db
