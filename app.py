@@ -101,6 +101,10 @@ st.markdown(f"""
         text-align: left;
         transition: all 0.2s ease;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        height: 110px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }}
     .stat-card:hover {{
         border-color: rgba(59, 130, 246, 0.4);
@@ -108,16 +112,20 @@ st.markdown(f"""
     }}
     .stat-title {{
         color: {text_muted};
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         font-weight: 600;
         margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }}
     .stat-value {{
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         font-weight: 700;
         color: #f8fafc;
+        white-space: nowrap;
     }}
 
     /* Performance Indicators Badges */
@@ -430,7 +438,7 @@ with st.sidebar:
     with st.expander("⚙️ RAG Engine Parameters", expanded=False):
         st.session_state["set_llm"] = st.selectbox(
             "Primary LLM Engine",
-            ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
+            ["qwen/qwen3.8-27b"],
             index=0
         )
         st.session_state["set_chunk_strategy"] = st.selectbox(
@@ -463,7 +471,7 @@ num_chunks = len(all_chunks)
 # Title Header & System Badges
 title_col, badge_col = st.columns([2, 1])
 with title_col:
-    st.title("AskMyDocs Intelligence 🌌")
+    st.title("AskMyDocs 📚")
     st.markdown(
         f"<span style='color:{text_muted}; font-size:1.05rem;'>High-fidelity AI workspace "
         "leveraging reciprocal rank fusion and ms-marco cross-encoder rerankers.</span>",
@@ -474,7 +482,7 @@ with badge_col:
     st.markdown("""
     <div style="display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; margin-top:8px;">
         <div class="badge-perf"><span class="badge-dot dot-ready"></span>Ready</div>
-        <div class="badge-perf" style="font-family:'JetBrains Mono';">LLM: Llama-3.3-70b</div>
+        <div class="badge-perf" style="font-family:'JetBrains Mono';">LLM: qwen3.8-27b</div>
         <div class="badge-perf" style="font-family:'JetBrains Mono';">Embedding: BGE-small</div>
     </div>
     """, unsafe_allow_html=True)
@@ -539,14 +547,14 @@ else:
     with m_col2:
         st.markdown(f"""
         <div class="stat-card">
-            <div class="stat-title">🧩 Slices (Chunks)</div>
+            <div class="stat-title">🧩 Chunks</div>
             <div class="stat-value">{num_chunks}</div>
         </div>
         """, unsafe_allow_html=True)
     with m_col3:
         st.markdown(f"""
         <div class="stat-card">
-            <div class="stat-title">🌐 Dense Vectors</div>
+            <div class="stat-title">🌐 Vectors</div>
             <div class="stat-value">{num_chunks}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -665,7 +673,7 @@ else:
                             """, unsafe_allow_html=True)
 
                 # Show nice action feedback items at the bottom of the response
-                col_feed_1, col_feed_2, col_feed_3, col_feed_4 = st.columns([1, 1, 1, 10])
+                col_feed_1, col_feed_2, col_feed_3, col_feed_4 = st.columns([2, 2, 4, 6])
                 with col_feed_1:
                     if st.button("👍 Useful", key=f"like_{msg['id']}", help="This grounded answer is correct"):
                         st.toast("Thank you for your feedback!", icon="💖")
@@ -673,8 +681,7 @@ else:
                     if st.button("👎 Unclear", key=f"dislike_{msg['id']}", help="This answer is incomplete or incorrect"):
                         st.toast("Feedback recorded. We'll fine-tune constraints.", icon="📝")
                 with col_feed_3:
-                    # Provide a simple copy action code-block utility
-                    st.code(content, language="markdown")
+                    pass
 
     # Sticky Bottom Chat Input
     user_query = st.chat_input("Ask anything about your documents...") or st.session_state["last_query"]
@@ -752,7 +759,7 @@ else:
             # Fetch engine parameters safely from session state or fall back to defaults
             top_k = st.session_state.get("set_top_k", 10)
             top_n = st.session_state.get("set_top_n", 5)
-            llm_model = st.session_state.get("set_llm", "llama-3.3-70b-versatile")
+            llm_model = st.session_state.get("set_llm", "qwen/qwen3.8-27b")
             temperature = st.session_state.get("set_temperature", 0.1)
 
             result = ask(user_query, top_k=top_k, top_n=top_n, model=llm_model, temperature=temperature)
